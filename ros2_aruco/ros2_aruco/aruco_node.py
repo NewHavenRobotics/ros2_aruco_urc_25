@@ -90,7 +90,15 @@ class ArucoNode(rclpy.node.Node):
                 description="Camera optical frame to use.",
             ),
         )
-
+        self.declare_parameter(
+            name="allowed_marker_ids",
+            value=[],
+            descriptor=ParameterDescriptor(
+                type=ParameterType.PARAMETER_STRING_ARRAY,
+                description="List of valid marker IDs to process.",
+            ),
+        )
+        
         self.marker_size = (
             self.get_parameter("marker_size").get_parameter_value().double_value
         )
@@ -114,6 +122,11 @@ class ArucoNode(rclpy.node.Node):
         self.camera_frame = (
             self.get_parameter("camera_frame").get_parameter_value().string_value
         )
+        self.allowed_marker_ids = (
+            self.get_parameter("allowed_marker_ids").get_parameter_value().string_array_value
+        )
+        self.get_logger().info(f"Allowed marker IDs: {self.allowed_marker_ids}")
+
 
         # Make sure we have a valid dictionary id:
         try:
@@ -187,6 +200,8 @@ class ArucoNode(rclpy.node.Node):
                     corners, self.marker_size, self.intrinsic_mat, self.distortion
                 )
             for i, marker_id in enumerate(marker_ids):
+                if str(marker_id[0]) not in self.allowed_marker_ids:
+                    continue  # Skip markers not in the allowed list
                 pose = Pose()
                 pose.position.x = tvecs[i][0][0]
                 pose.position.y = tvecs[i][0][1]
@@ -205,8 +220,8 @@ class ArucoNode(rclpy.node.Node):
                 markers.poses.append(pose)
                 markers.marker_ids.append(marker_id[0])
 
-            self.poses_pub.publish(pose_array)
-            self.markers_pub.publish(markers)
+                self.poses_pub.publish(pose_array)
+                self.markers_pub.publish(markers)
 
 
 def main():
