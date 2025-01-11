@@ -92,7 +92,7 @@ class ArucoNode(rclpy.node.Node):
         )
         self.declare_parameter(
             name="allowed_marker_ids",
-            value=[],
+            value=["0", "1", "2", "3"],
             descriptor=ParameterDescriptor(
                 type=ParameterType.PARAMETER_STRING_ARRAY,
                 description="List of valid marker IDs to process.",
